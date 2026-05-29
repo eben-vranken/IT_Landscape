@@ -1,0 +1,53 @@
+name: Docker image bouwen en publiceren
+
+# Deze workflow draait telkens er gepusht wordt naar de main-branch
+on:
+  push:
+    branches:
+      - main
+
+# Het register en de naam van de image
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    # Rechten die de workflow nodig heeft om naar GitHub Packages te pushen
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # 1. De broncode ophalen
+      - name: Code uitchecken
+        uses: actions/checkout@v4
+
+      # 2. Inloggen op de GitHub Container Registry
+      - name: Inloggen op ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Metadata (tags en labels) genereren voor de image
+      - name: Metadata bepalen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      # 4. De image bouwen vanuit de app-map en pushen
+      - name: Image bouwen en pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: ./app
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

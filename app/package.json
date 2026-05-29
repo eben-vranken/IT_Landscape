@@ -1,0 +1,12 @@
+{
+  "name": "it-landscape-app",
+  "version": "1.0.0",
+  "description": "Kleine demo-app voor de CI/CD-pipeline opdracht",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
